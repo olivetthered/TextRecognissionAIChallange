@@ -4,6 +4,7 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
     this.sourceimage = document.getElementById('myimage');
     this.canvas1 = document.getElementById('canvas1');
     this.canvas2 = document.getElementById('canvas2');
+    this.characters = document.getElementById('characters');
     this.canvas2.width = this.canvas1.width = document.getElementById('myimage').naturalWidth;
     this.canvas2.height = this.canvas1.height = document.getElementById('myimage').naturalHeight;
 
@@ -278,18 +279,36 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
             break;
         }
     }
+    this.ctx2.putImageData(frame, 0, 0);
     
     for (matchedRC = 0; matchedRC < matchedRowCols.length; matchedRC++) {
         renderRowCol(this.ctx2, frame, matchedRowCols[matchedRC]);
     }
 
-    for (matchedRC = 0; matchedRC < matchedRowCols.length; matchedRC++) {
-        renderRowCol2(this.ctx2, frame, matchedRowCols[matchedRC]);
-    }
 
-    this.ctx2.putImageData(frame, 0, 0);
+    //borders = calculateBorders(matchedRowCols);
+
+    //this.ctx2.putImageData(frame, 0, 0);
+    occupiedRowCols = calculateOccuipiedRowColsFromMatchedRowCols(borders, matchedRowCols);
+    loadCharachers();
+    text = recognizeCharacters(frame, occupiedRowCols);
 
 };
+function calculateOccuipiedRowColsFromMatchedRowCols(borders, matchedRowCols) {
+    //basicall invert matchedRowCols
+    return new Object;
+}
+function loadCharachers() {
+    //load all the characters from the TTF to use for pattern matching
+}
+
+function recognizeCharacters(frame, occupiedRowCols) {
+    return object;
+}
+function calculateBorders(matchedRowCols) {
+    //result = findEdges(matchedRowCols);
+    return object;
+}
 
 function findEdges(matchedRowCols) {
     grid = 0;
@@ -358,30 +377,6 @@ function findEdges(matchedRowCols) {
 function tryToFitBlanks() {
 
 }
-function renderRowCol2(cctx, frame, matchedRowCol) {
-
-    colour = [255, 0, 0, 255];
-    scale = Math.pow(2, matchedRowCol.grid + 1);
-    x1 = 0;
-    y1 = 0;
-    x2 = 0;
-    y2 = 0;
-    if (matchedRowCol.rowcol === "col") {
-        scale = frame.height / scale;
-        //x1 = 0;
-        x2 = frame.width;
-        y1 = Math.floor(matchedRowCol.entry * scale);
-        y2 = Math.floor((matchedRowCol.entry + 1) * scale);
-    } else {
-        scale = frame.width / scale;
-        //y1 = 0;
-        y2 = frame.height;
-        x1 = Math.floor(matchedRowCol.entry * scale);
-        x2 = Math.floor((matchedRowCol.entry + 1) * scale);
-    }
-    cctx.fillRect(x1, y1, x2, y2);
-
-}
 
 function renderRowCol(cctx, frame, matchedRowCol) {
 
@@ -417,6 +412,7 @@ function renderRowCol(cctx, frame, matchedRowCol) {
     cctx.rect(x1, y1, x2 - x1, y2 - y1);
     cctx.lineWidth = 1;
     cctx.fill();
+    /*
     y = y1;
     for (x = x1; x < x2; x++) {
         drawPixel(x, y, frame, colour);
@@ -433,7 +429,8 @@ function renderRowCol(cctx, frame, matchedRowCol) {
     for (y = y1; y < y2; y++) {
         drawPixel(x, y, frame, colour);
     }
-}
+    */
+ }
 
 function testSquare(frame, left, top, width, height, hasSpot) {
     if (hasSpot.x >= left + width && hasSpot.y >= top + height) {
