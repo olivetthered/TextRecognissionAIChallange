@@ -107,25 +107,11 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
                 }
                 theGrid[px + py * gridSpacing] = hasSpot;
 
-                //Draw a little dot on the frame image so we know we have done something
+                //DEBUG CODE: Draw a little dot on the frame image so we know we have done something
                 if (hasSpot.x != -1) {
-                    /*
-                                            frame.data[(igx  + igy   * frame.width) * 4 + R] = 0;
-                                            frame.data[(igx +  igy * frame.width) * 4 + G] = 128;
-                                            frame.data[(igx  + igy  * frame.width) * 4 + B] = 128;
-                                            frame.data[(igx  + igy * frame.width) * 4 + A] = 255;
-                    
-                                            frame.data[(igx + Math.floor((width/ gridSpacing)/ 2) + (igy +Math.floor((height/ gridSpacing)/ 2))  * frame.width) * 4 + R] = 255;
-                                            frame.data[(igx + Math.floor((width/ gridSpacing)/ 2) +  (igy +Math.floor((height/ gridSpacing)/ 2)) * frame.width) * 4 + G] = 0;
-                                            frame.data[(igx + Math.floor((width/ gridSpacing)/ 2) +  (igy +Math.floor((height/ gridSpacing)/ 2)) * frame.width) * 4 + B] = 0;
-                                            frame.data[(igx + Math.floor((width/ gridSpacing)/ 2) +  (igy +Math.floor((height/ gridSpacing)/ 2)) * frame.width) * 4 + A] = 255;
-                    
-                                            frame.data[(hasSpot.x + hasSpot.y * frame.width) * 4 + R] = 255;
-                                            frame.data[(hasSpot.x +  hasSpot.y * frame.width) * 4 + G] = 0;
-                                            frame.data[(hasSpot.x +  hasSpot.y  * frame.width) * 4 + B] = 255;
-                                            frame.data[(hasSpot.x +  hasSpot.y  * frame.width) * 4 + A] = 255;
-                    */
-
+                    //drawPixel(igx, igy, frame, 0xFF0000FF);
+                    //or drawPixel(hasSpot.x, hasSpot.y, frame, 0xFF0000FF);
+                    //or drawPixel(igx + BigInt(Math.floor((width/ gridSpacing)/ >> 1)) , igy  + BigInt(Math.floor((height/ gridSpacing)) >> 1), frame, 0xFF0000FF);
                 }
                 px++;
             }
@@ -138,6 +124,8 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
          *      This basically stops double counting and keeps the granularity to a minimum.
          * 
          */
+
+        //INLINED HELPER FUNCTIONS
         //Now that we've identified all the matrix cells that contain something in this iteration
         //Count how many celled contained something by each row and column
         function threasholdTest(total, grid) {
@@ -278,6 +266,7 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
     for (matchedRC = 0; matchedRC < matchedRowCols.length; matchedRC++) {
         renderRowCol(this.ctx2, frame, matchedRowCols[matchedRC]);
     }
+
     /*
      *  The last remaining component is to:
      *      calculate the border areas of the tables, 
@@ -285,7 +274,6 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
      *      process that data to see if it's text or something else.
      * 
      * */
-
     borders = calculateBorders(matchedRowCols);
 
     /*
@@ -297,6 +285,13 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
      * *
      * */
     occupiedRowCols = calculateOccuipiedRowColsFromMatchedRowCols(borders, matchedRowCols);
+
+     /*
+     * *
+     * * There should be an overall density 'sweet spot or two', which are 1 character width and height and one character horizontal and vertical spacing
+     *   Rows and columns may also have some degree of harmonized density which could be used to further refiner tabular layouts.
+     * *
+     * */
     loadCharachers();
     text = recognizeCharacters(frame, occupiedRowCols);
 
@@ -309,7 +304,6 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
  * Identify the matched rows and columns that make up the border areas.
  * 
  * */
-
 function findEdges(matchedRowCols) {
     grid = 0;
     mincol = [];
@@ -419,6 +413,12 @@ function renderRowCol(cctx, frame, matchedRowCol) {
 /*
  * 
  * Here are a couple of histogram and the main filter function which can be used as one way of turning the scanned document into a black and white image needed for the rest of the code.
+ * histogram functions added which may be useful for filtering the page to adjust any colour, brightness or saturation variations and or to identify 
+ * 'banding' in the histogram that indicates a difference in colour between desirable and undesirable content. desirable content, when bound to an area, should have a discernible density profile.
+ * The filter frame function i have implemented hear uses a colour range picking technique, which removes undesirable content from 2020-07-02 (12).png 
+ *  or a 'brightness' range technique to blacken up gray areas of documents such as Screen-shot 2020-12-04 085656.png that are already black and white.
+ *  I'd expect that you'd want to calculate HSVA values for the histogram entries instead of RGBA. 
+ *  the alpha channel is redundant in the input for this exercise so you may want to hijack it to store extra information about each pixel without having to deal with a whole other array for it.
  * 
  */
 function filterFrame(frame, filter)
@@ -601,24 +601,24 @@ function deskew(frame, skewRomb, width) {
      * */
 }
 
-/* this function sees if the standard spaced grid will fit in the areas that appear to have been identfied as non-space areas by offsetting the top, left of the grid to see if it fits */
+/* this function sees if the standard spaced grid will fit in the areas that appear to have been identified as non-space areas by offsetting the top, left of the grid to see if it fits */
 function tryToFitBlanks() {
 
 }
 
 function calculateOccuipiedRowColsFromMatchedRowCols(borders, matchedRowCols) {
     //basically invert matchedRowCols
-    return new Object;
+    return new Object();
 }
 function loadCharachers() {
     //load all the characters from the TTF to use for pattern matching
 }
 
 function recognizeCharacters(frame, occupiedRowCols) {
-    return new Object;
+    return new Object();
 }
 
 function calculateBorders(matchedRowCols) {
     result = findEdges(matchedRowCols);
-    return new Object;
+    return new Object();
 }
