@@ -1,0 +1,32 @@
+This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit
+http://creativecommons.org/licenses/by-sa/4.0/.
+
+Unless listed in the following list of content liscensed under the BSD license, license or Fairuse public domain license.
+
+see License.xmp
+
+Creative Commons Licence
+  http://purl.org/dc/terms/
+  title: 'Text recognition AI challenge' by:
+    attributionName: Oliver(thered) Stieber.
+    href: 'https://github.com/olivetthered/TextRecognissionAIChallange'
+  Is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License: 
+    license: 'http://creativecommons.org/licenses/by-sa/4.0/'
+  Based on a work at:
+    href : 'https://github.com/olivetthered/TextRecognissionAIChallange.git'
+    terms: http://purl.org/dc/terms/
+
+To make a copy of this work:
+
+git clone https://github.com/olivetthered/TextRecognissionAIChallange.git
+
+
+Files under BSD license, can be forund under the directory BSD:
+
+git clone 'https://github.com/olivetthered/TextRecognissionAIChallange.git/BSD'
+
+Files under  Fairuse public domain license (US/UK and Central Europe), can be forund under the directory Fairuse:
+
+git clone 'https://github.com/olivetthered/TextRecognissionAIChallange.git/Fairuse'
+
+
