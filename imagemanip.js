@@ -1,4 +1,15 @@
+import { deskew } from "./helpme.js";
+/*
+ * * Some helper functions and hints if you run short of ideas or are struggling to get started.
+ * *
+ * */
+
+
+
 var processor = Object();
+export function doLoad(overRuntollerance, minimumGridSpacingToAllowOverruns, numberOfGrids, maximumConsecutiveOverrunBlocks, overRurnPenelty, matchDropout, filter) {
+    processor.doLoad(overRuntollerance, minimumGridSpacingToAllowOverruns, numberOfGrids, maximumConsecutiveOverrunBlocks, overRurnPenelty, matchDropout, filter);
+}
 //FIXME: matchDropout is being used so it drops out when count  matched is reached. really it should drop out when the relevant grid number is reached.
 processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowOverruns, numberOfGrids, maximumConsecutiveOverrunBlocks, overRurnPenelty, matchDropout, filter) {
 
@@ -10,36 +21,38 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
     this.canvas2.height = this.canvas1.height = document.getElementById('myimage').naturalHeight;
 
     this.ctx1 = this.canvas1.getContext('2d');
-    this.ctx1.drawImage(this.sourceimage, 0, 0);
+    //this.ctx1.drawImage(this.sourceimage, 0, 0);
     this.sourceimageCtx = this.ctx1;
     
     this.ctx2 = this.canvas2.getContext('2d');
+    this.ctx1.drawImage(this.sourceimage, 0 ,0);
     let self = this;
+    let frame = new Object();
 
-    let frame = this.ctx1.getImageData(0, 0, this.canvas1.width, this.canvas1.height);//this.ctx1.getImageData(0, 0, this.width, this.height);
+    frame = this.ctx1.getImageData(0, 0, this.canvas2.width, this.canvas2.height);//this.ctx1.getImageData(0, 0, this.width, this.height);
 
     let width = this.canvas1.width;
-    frame.width = this.canvas1.width;
     let height = this.canvas1.height;
 
 /*
-* preprocessing, filter the image to remove unwanted, say, color, information. currently the frame data is required to be black on white for processing.
- * you may want to deskew the image so that the columns and tables are accurately identified using as basic linear algorithm.
-*
-* */
+ *Deskew and filter-out unwanted content from the frame.
+ * 
+ * 
+ * */
     let skewRect = new Object();
     skewRect.x1 = 0;
     skewRect.x2 = 0;
     skewRect.y1 = 0;
-    skewRect.y2 = height;
-    deskew(frame, skewRect, width);
+    skewRect.y2 = height;    
+    deskew(frame, skewRect);
 
     filterFrame(frame, filter);
 
 
     
     //this.sourceimageCtx.scale(0.75, 0.75);
-    this.sourceimageCtx.putImageData(frame, 0, 0);
+    //this.sourceimageCtx.putImageData(frame, 0, 0);
+    //this.ctx2.putImageData(frame, 0, 0);
     //this.sourceimageCtx.scale(1, 1);
 
     //tolerance = 3,4, 9, 2, 1, 40; //This is the cut off tolerance for the number of non-empty cells
@@ -51,12 +64,12 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
      *  Scan the image with a binary grid matrix of ever decreasing box width. Each iteration there are twice as many element in the matrix.
      *  some optimizations for marking a cell as populated or not based on the status of the parent cell have been implemented.
      *  */
-    theGrids = [];
+    let theGrids = [];
     theGrids.length = 40;
-    theColRowTotals = [];
+    let theColRowTotals = [];
     theColRowTotals.length = 40;
-    grid = 0;
-    for (gridSpacing = 2;
+    let grid = 0;
+    for (let gridSpacing = 2;
         gridSpacing <= Math.pow(2, numberOfGrids);
         gridSpacing = gridSpacing * 2) {
 
@@ -78,19 +91,19 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
          * Look to see if the grid cell is empty of contains data.
          * 
          * */
-        py = 0;
-        for (gy = 0; gy < height; gy = gy + (height / gridSpacing)) {
-            px = 0;
-            igy = Math.floor(gy);
-            iww = Math.floor(height / gridSpacing);
-            for (gx = 0; gx < width; gx = gx + (width / gridSpacing)) {
+        let py = 0;
+        for (let gy = 0; gy < height; gy = gy + (height / gridSpacing)) {
+            let px = 0;
+            let igy = Math.floor(gy);
+            let iww = Math.floor(height / gridSpacing);
+            for (let gx = 0; gx < width; gx = gx + (width / gridSpacing)) {
 
-                igx = Math.floor(gx);
-                iwh = Math.floor(width / gridSpacing);
+                let igx = Math.floor(gx);
+                let iwh = Math.floor(width / gridSpacing);
 
                 //Test to see if there is anything inside the matrix element
 
-                hasSpot = Object();
+                let hasSpot = Object();
                 if (grid > 0) {
                     // If the matrix element contained nothing on the previous run then don't bother checking it again this time
                     if (theGrids[grid - 1][Math.floor(px / 2) + Math.floor(py / 2) * gridSpacing / 2].x != -1) {
@@ -134,7 +147,7 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
             return false;
         }
 
-        for (elm = 0; elm < gridSpacing; elm++) {
+        for (let elm = 0; elm < gridSpacing; elm++) {
             //this bit can be optimized by passing the correct array, col or row
             if (grid > 0 && elm % 2 === 0) {
                 // The overlapping column on the previous grid was below the threshold, so set this one not to double count
@@ -149,14 +162,14 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
             }
 
             //this is the scan-line bit, it can be optimized by passing the reliant function to perform the inner lookup theGrid[elmX + elm * gridSpacing].x or theGrid[elm + elmX * gridSpacing].x, so basically needs to calculate either elmX + elm * gridSpacing or elm + elmX * gridSpacing
-            elmTotal = 0;
-            elmX = 0;
+            let elmTotal = 0;
+            let elmX = 0;
             while (elmX < gridSpacing) {
                 while (elmX < gridSpacing && theGrid[elmX + elm * gridSpacing].x === -1) {
                     elmX++
                 }
                 if (elmX < gridSpacing) {
-                    blockCount = 0;
+                    let blockCount = 0;
                     while (elmX < gridSpacing && theGrid[elmX + elm * gridSpacing].x != -1) {
                         blockCount++
                         elmX++
@@ -170,7 +183,7 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
             theColRowTotals[grid].colTotals[elm] = elmTotal;
         }
 
-        for (elm = 0; elm < gridSpacing; elm++) {
+        for (let elm = 0; elm < gridSpacing; elm++) {
             if (grid > 0 && elm % 2 === 0) {
                 const prevColTotal = theColRowTotals[grid - 1].rowTotals[elm >> 1];
                 // The overlapping row on the previous grid was below the threshold, so set this one not to double count
@@ -181,15 +194,15 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
                     continue;
                 }
             }
-            elmTotal = 0;
-            elmX = 0;
+            let elmTotal = 0;
+            let elmX = 0;
             while (elmX < gridSpacing) {
                 while (elmX < gridSpacing && theGrid[elm + elmX * gridSpacing].x === -1) {
                     elmX++
                 }
                 //rowTotal--;
                 if (elmX < gridSpacing) {
-                    blockCount = 0;
+                    let blockCount = 0;
                     while (elmX < gridSpacing && theGrid[elm + elmX * gridSpacing].x != -1) {
                         blockCount++
                         elmX++
@@ -209,8 +222,8 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
         grid++;
     }
 
-    grids = grid;
-    matchedRowCols = [];
+    let grids = grid;
+    let matchedRowCols = [];
 
     /*finally, iterate over all the row col totals and identify those that are within tolerance and add them to a list of candidate row and columns for layout fitting
     * In theory it's possible to check the row and column counts against the tolerance and add them to the list when they are calculated
@@ -219,9 +232,9 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
     * */
     for (grid = 0; grid < grids; grid++) {
         let theColRowTotal = theColRowTotals[grid];
-        colRowFitcount = 0;
-        entries = theColRowTotal.rowTotals.length;
-        for (entry = 0; entry < entries; entry++) {
+        //let colRowFitcount = 0;
+        let entries = theColRowTotal.rowTotals.length;
+        for (let entry = 0; entry < entries; entry++) {
             /*
              * FIXME:Use a standard tolerance checking function
              * and optimize the code out so it uses the relevant rowTotals or colTotals array and the "row" "col" identification flag.
@@ -261,10 +274,10 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
      * * and finally render the resulting row/column grid.
      * *
      * */
-    this.ctx2.putImageData(frame, 0, 0);
+    this.ctx1.putImageData(frame, 0, 0);
     
-    for (matchedRC = 0; matchedRC < matchedRowCols.length; matchedRC++) {
-        renderRowCol(this.ctx2, frame, matchedRowCols[matchedRC]);
+    for (let matchedRC = 0; matchedRC < matchedRowCols.length; matchedRC++) {
+        renderRowCol(this.ctx1, frame, matchedRowCols[matchedRC]);
     }
 
     /*
@@ -274,27 +287,15 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
      *      process that data to see if it's text or something else.
      * 
      * */
-    borders = calculateBorders(matchedRowCols);
-
     /*
-     * *
-     * * You may want, as an additional step, to run the tabular layout detection again, but within a cell/cells row or column area of interest.
-     * So 'sub tables' can be detected and fancy borders can be removed and inner content processed.
-     * I would suggest something like a density function. to identify areas with excess white and black space compared to the mean black/white space by row or column for character data.
-     * That will then give you an estimate of the numbers of characters in as row or column, text may be too bright to too dirty which would skew the result from the true mean for the character data.
-     * *
-     * */
-    occupiedRowCols = calculateOccuipiedRowColsFromMatchedRowCols(borders, matchedRowCols);
+    let borders = calculateBorders(matchedRowCols, grids);
 
-     /*
-     * *
-     * * There should be an overall density 'sweet spot or two', which are 1 character width and height and one character horizontal and vertical spacing
-     *   Rows and columns may also have some degree of harmonized density which could be used to further refiner tabular layouts.
-     * *
-     * */
+
+    let occupiedRowCols = calculateOccuipiedRowColsFromMatchedRowCols(borders, matchedRowCols);
+
     loadCharachers();
-    text = recognizeCharacters(frame, occupiedRowCols);
-
+    let text = recognizeCharacters(frame, occupiedRowCols);
+    */
     //this.ctx2.putImageData(frame, 0, 0);
 
 };
@@ -304,24 +305,24 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
  * Identify the matched rows and columns that make up the border areas.
  * 
  * */
-function findEdges(matchedRowCols) {
-    grid = 0;
-    mincol = [];
-    mincol.length = maxcol.length = minrow.length = maxrow.length = grids + 1;
-    maxcol = [];
+function findEdges(matchedRowCols, grids) {
+    let grid = 0;
+    let mincol = [];
+    let maxcol = [];
     //maxcol.length = grids + 1;
-    minrow = [];
+    let minrow = [];
     //minrow.length = grids + 1;
-    maxrow = [];
+    let maxrow = [];
+    mincol.length = maxcol.length = minrow.length = maxrow.length = grids + 1;
     //maxrow.length = grids + 1;
-    for (n = 0; n < grids; n++) {
+    for (let n = 0; n < grids; n++) {
         maxrow[n] = maxcol[n] = 100;
         //mincol[n] = -1;
         //maxrow[n] = 100;
         mincol[n] = minrow[n] = -1;
     }
 
-    for (n = 0; n < matchedRowCols.length; n++) {
+    for (let n = 0; n < matchedRowCols.length; n++) {
         grid = matchedRowCols[n].grid;
         if (matchedRowCols[n].rowcol === "col") {
             if (n < mincol[grid]) {
@@ -339,7 +340,7 @@ function findEdges(matchedRowCols) {
             }
         }
     }
-    for (n = 0; n < grids; n++) {
+    for (let n = 0; n < grids; n++) {
 
         if (mincol[n] != -1) {
             matchedRowCol = matchedRowCols[mincol[n]];
@@ -375,12 +376,12 @@ function findEdges(matchedRowCols) {
 
 function renderRowCol(cctx, frame, matchedRowCol) {
 
-    colour = [255, 0, 0, 255];
-    scale = Math.pow(2, matchedRowCol.grid + 1);
-    x1 = 0;
-    y1 = 0;
-    x2 = 0;
-    y2 = 0;
+    let colour = [255, 0, 0, 255];
+    let scale = Math.pow(2, matchedRowCol.grid + 1);
+    let x1 = 0;
+    let y1 = 0;
+    let x2 = 0;
+    let y2 = 0;
     if (matchedRowCol.rowcol === "col") {
         scale = frame.height / scale;
         //x1 = 0;
@@ -411,16 +412,9 @@ function renderRowCol(cctx, frame, matchedRowCol) {
 }
 
 /*
- * 
- * Here are a couple of histogram and the main filter function which can be used as one way of turning the scanned document into a black and white image needed for the rest of the code.
- * histogram functions added which may be useful for filtering the page to adjust any colour, brightness or saturation variations and or to identify 
- * 'banding' in the histogram that indicates a difference in colour between desirable and undesirable content. desirable content, when bound to an area, should have a discernible density profile.
- * The filter frame function i have implemented hear uses a colour range picking technique, which removes undesirable content from 2020-07-02 (12).png 
- *  or a 'brightness' range technique to blacken up gray areas of documents such as Screen-shot 2020-12-04 085656.png that are already black and white.
- *  I'd expect that you'd want to calculate HSVA values for the histogram entries instead of RGBA. 
- *  the alpha channel is redundant in the input for this exercise so you may want to hijack it to store extra information about each pixel without having to deal with a whole other array for it.
- * 
- */
+ * * clean the frame up
+ * *
+ * */
 function filterFrame(frame, filter)
 {
     let l = frame.data.length / 4;
@@ -483,54 +477,6 @@ function filterFrame(frame, filter)
     }
 }
 
-// Here's a simple 12bit colour space histogram function that takes histSamples random samples from the source frame
-function buildHistogram12(frame, histSamples) {
-
-    //build a histogram going from a 32bit colour space down to a 12 bit colour space.
-    let result = new Object[4096];
-    for (let counter = 0; counter < result.length; counter++) {
-        result[counter] = BigInt(0);
-    }
-    const framepixels = frame.length >> 2;
-    //if you want to use the entire frame as a  sample space.
-    //for (framePointer = 0; framePointer < frame.length; framePointer +=4)
-    for (let sample = 0; sample < histSamples; sample++)
-    { 
-        let framePixel = randomInt(framepixels);
-        framePointer = framePixel << 2;
-        let r = BigInt(frame[framePointer]);
-        let g = BigInt(frame[framePointer + 1]);
-        let b = BigInt(frame[framePointer + 2]);
-        let a = BigInt(frame[framePointer + 3]);
-        histCol = BigInt(((r & 0xFF) >> 5) | (((g & 0xFF) >> 5) << 3) | (((b & 0xFF) >> 5) << 6) | (((a & 0xFF) >> 5) << 9));
-        result[histCol]++;
-    }
-    return result;
-}
-
-//Here's a simple 8bit colour space histogram function that takes histSamples random samples from the source frame
-function buildHistogram8(frame, histSamples) {
-
-    //build a histogram going from a 32bit colour space down to a 12 bit colour space.
-    let result = new Object[256];
-    for (let counter = 0; counter < result.length; counter++) {
-        result[counter] = BigInt(0);
-    }
-    const framepixels = frame.length >> 2;
-    //for (framePointer = 0; framePointer < frame.length; framePointer +=4)
-    for (let sample = 0; sample < histSamples; sample++) {
-        let framePixel = randomInt(framepixels);
-        framePointer = framePixel << 2;
-        let r = BigInt(frame[framePointer]);
-        let g = BigInt(frame[framePointer + 1]);
-        let b = BigInt(frame[framePointer + 2]);
-        let a = BigInt(frame[framePointer + 3]);
-        histCol = BigInt(((r & 0xFF) >> 6) | (((g & 0xFF) >> 6) << 2) | (((b & 0xFF) >> 6) << 4) | (((a & 0xFF) >> 6) << 6));
-        result[histCol]++;
-    }
-    return result;
-}
-
 /*
  * See if there is any data within the bounds of the grid square.
  * 
@@ -555,8 +501,8 @@ function testSquare(frame, left, top, width, height, hasSpot) {
             hasSpot.y = top;
         }
     }
-    for (y = hasSpot.y; y < top + height; y++) {
-        for (x = left; x < left + width; x++) {
+    for (let y = hasSpot.y; y < top + height; y++) {
+        for (let x = left; x < left + width; x++) {
             if (getPixel(x, y, frame)[0] === 0) {
                 hasSpot.y = y;
                 hasSpot.x = x;
@@ -582,29 +528,11 @@ function drawPixel(x, y, frame, colour) {
 function getPixel(x, y, frame) {
 
     return [frame.data[(x + y * frame.width) * 4],
-    frame.data[(x + y * frame.width) * 4 + 1],
-    frame.data[(x + y * frame.width) * 4 + 2],
-    frame.data[(x + y * frame.width) * 4 + 3]]
+        frame.data[(x + y * frame.width) * 4 + 1],
+        frame.data[(x + y * frame.width) * 4 + 2],
+        frame.data[(x + y * frame.width) * 4 + 3]]
 }
 
-
-/*
- * * Functions that are empty stubs to be implemented.
- * *
- * *
- * *
- */
-function deskew(frame, skewRomb, width) {
-    /*
-     * Given a rhombus? describing the 'best' for horizontal and vertical for say the edges and the middle of the document (or whatever fits)
-     * Remove the represented 'skew' for the frame, hopefully, returning a document with nice parallel, horizontal lines of text in it for us to process.
-     * */
-}
-
-/* this function sees if the standard spaced grid will fit in the areas that appear to have been identified as non-space areas by offsetting the top, left of the grid to see if it fits */
-function tryToFitBlanks() {
-
-}
 
 function calculateOccuipiedRowColsFromMatchedRowCols(borders, matchedRowCols) {
     //basically invert matchedRowCols
@@ -618,7 +546,7 @@ function recognizeCharacters(frame, occupiedRowCols) {
     return new Object();
 }
 
-function calculateBorders(matchedRowCols) {
-    result = findEdges(matchedRowCols);
+function calculateBorders(matchedRowCols, grids) {
+    let result = findEdges(matchedRowCols, grids);
     return new Object();
 }

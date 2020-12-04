@@ -7,17 +7,23 @@
 
 <body onload="">
 
-	<script type="text/javascript" src="./imagemanip.js">
+	<script type="module">
+		import *  as imageManipulation from "./imagemanip.js";
+        Document.im = imageManipulation;
 	</script>
 
-	<img id="myimage" width="300" HEIGHT="300" src="Fairuse/Screenshot 2020-12-04 124547.png"
-		 foo="overRuntollerance, minimumGridSpacingToAllowOverruns, numberOfGrids, maximumConsecutiveOverrunBlocks, overRurnPenelty, matchDropout"
-		 onclick="processor.doLoad(/* overRuntollerance = */ 4,/* minimumGridSpacingToAllowOverruns = */ 3, /* numberOfGrids = */ 10, /* maximumConsecutiveOverrunBlocks = */ 3, /* overRurnPenelty = */ 1, /* matchDropout = */ 90, false);" />
-	<div>
-		<canvas id="canvas1"/>
-		<canvas id="canvas2"/>
-		<canvas id="characters"/>
-	</div>
+	<script type="text/javascript">
+		
+	</script>
 
-</body>
-</html>
+		<img id="myimage" width="300" HEIGHT="300" src="Fairuse/Screenshot 2020-12-04 124547.png"
+			foo="overRuntollerance, minimumGridSpacingToAllowOverruns, numberOfGrids, maximumConsecutiveOverrunBlocks, overRurnPenelty, matchDropout"
+			onclick="Document.im.doLoad(/* overRuntollerance = */ 4,/* minimumGridSpacingToAllowOverruns = */ 3, /* numberOfGrids = */ 10, /* maximumConsecutiveOverrunBlocks = */ 3, /* overRurnPenelty = */ 1, /* matchDropout = */ 30, false);" />
+			<div>
+				<canvas id="canvas1" />
+				<canvas id="canvas2" />
+				<canvas id="characters" />
+			</div>
+
+</body >
+</html >
