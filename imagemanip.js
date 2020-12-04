@@ -64,6 +64,25 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
      *  Scan the image with a binary grid matrix of ever decreasing box width. Each iteration there are twice as many element in the matrix.
      *  some optimizations for marking a cell as populated or not based on the status of the parent cell have been implemented.
      *  */
+
+    function threasholdTest2(total, grid) {
+        //total  < overRuntollerance needs to scale based on the grid number because each grid has twice the elements, so you'd expect the finer granularity to need a lower sum tolerance than a lower granularity.
+        var gridMultipl = (((grid - minimumGridSpacingToAllowOverruns > 0 ? grid - minimumGridSpacingToAllowOverruns: 0) / 2.0) + grid >= minimumGridSpacingToAllowOverruns ? 1 : 0); //(-1 +((grid  - minimumGridSpacingToAllowOverruns) / 4)
+        if (total === 0 || (total < overRuntollerance * gridMultipl && grid >= minimumGridSpacingToAllowOverruns))
+            return true;
+        return false;
+    }
+
+    //INLINED HELPER FUNCTIONS
+    //Now that we've identified all the matrix cells that contain something in this iteration
+    //Count how many celled contained something by each row and column
+    function threasholdTest(total, grid) {
+        //total  < overRuntollerance needs to scale based on the grid number because each grid has twice the elements, so you'd expect the finer granularity to need a lower sum tolerance than a lower granularity.
+        if (threasholdTest2(total, grid) || total === 9999999999)
+            return true;
+        return false;
+    }
+
     let theGrids = [];
     theGrids.length = 40;
     let theColRowTotals = [];
@@ -138,82 +157,83 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
          * 
          */
 
-        //INLINED HELPER FUNCTIONS
-        //Now that we've identified all the matrix cells that contain something in this iteration
-        //Count how many celled contained something by each row and column
-        function threasholdTest(total, grid) {
-            if (total === 0 || total === 9999999999 || (total < overRuntollerance && grid >= minimumGridSpacingToAllowOverruns))
-                return true;
+
+        function roworcol(totals, grid, isCol) {
+            if (isCol === false) {
+                return totals[grid].rowTotals;
+            }
+            else
+                return totals[grid].colTotals;
+        }
+
+        function overlapTest(a, grid, theColRowTotals, isCol) {
+            if (grid > 0 && a.elm % 2 === 0) {
+                // The overlapping column on the previous grid was below the threshold, so set this one not to double count
+                const prevTotal = roworcol(theColRowTotals, grid - 1, isCol)[a.elm >> 1];
+                
+                if (threasholdTest(prevTotal, grid)) {
+                    roworcol(theColRowTotals, grid, isCol)[a.elm] = 9999999999;
+                    a.elm++;
+                    roworcol(theColRowTotals, grid, isCol)[a.elm] = 9999999999;
+                    return true;
+                }
+            }
             return false;
         }
 
-        for (let elm = 0; elm < gridSpacing; elm++) {
-            //this bit can be optimized by passing the correct array, col or row
-            if (grid > 0 && elm % 2 === 0) {
-                // The overlapping column on the previous grid was below the threshold, so set this one not to double count
-                const prevColTotal = theColRowTotals[grid - 1].colTotals[elm >> 1];
+        function gridByROrByC(elmX, elm, gridSpacing, isCol) {
+            if (isCol)
+                return elmX + elm * gridSpacing;
+            else
+                return elm + elmX * gridSpacing;
+                
+        }
 
-                if (threasholdTest(prevColTotal, grid) === true) {
-                    theColRowTotals[grid].colTotals[elm] = 9999999999;
-                    elm++;
-                    theColRowTotals[grid].colTotals[elm] = 9999999999;
-                    continue;
-                }
-            }
 
-            //this is the scan-line bit, it can be optimized by passing the reliant function to perform the inner lookup theGrid[elmX + elm * gridSpacing].x or theGrid[elm + elmX * gridSpacing].x, so basically needs to calculate either elmX + elm * gridSpacing or elm + elmX * gridSpacing
+        function calculaterowcoltotal(gridSpacing, theGrid, elm, isCol) {
             let elmTotal = 0;
             let elmX = 0;
             while (elmX < gridSpacing) {
-                while (elmX < gridSpacing && theGrid[elmX + elm * gridSpacing].x === -1) {
+                while (elmX < gridSpacing && theGrid[gridByROrByC(elmX, elm, gridSpacing, isCol)].x === -1) {
                     elmX++
                 }
                 if (elmX < gridSpacing) {
                     let blockCount = 0;
-                    while (elmX < gridSpacing && theGrid[elmX + elm * gridSpacing].x != -1) {
+                    while (elmX < gridSpacing && theGrid[gridByROrByC(elmX, elm, gridSpacing, isCol)].x != -1) {
                         blockCount++
                         elmX++
                     }
-                    if (blockCount >= maximumConsecutiveOverrunBlocks) {
-                        elmTotal = elmTotal + blockCount - overRurnPenelty;
+                    
+                    //this needs to be scaled based on the grid density.
+                    var gridMultipl = (((grid - minimumGridSpacingToAllowOverruns > 0 ? grid - minimumGridSpacingToAllowOverruns : 0) / 2) + (grid >= minimumGridSpacingToAllowOverruns ? 1 : 0));
+                    if (blockCount >= maximumConsecutiveOverrunBlocks * gridMultipl) {// * (1 + ((grid - minimumGridSpacingToAllowOverruns) / 2))) {
+                        elmTotal = elmTotal + ((blockCount - maximumConsecutiveOverrunBlocks * gridMultipl) + overRurnPenelty > 0) ? (blockCount - maximumConsecutiveOverrunBlocks * gridMultipl) + overRurnPenelty : 0;
                     }
+                    
                     elmTotal++;
                 }
             }
-            theColRowTotals[grid].colTotals[elm] = elmTotal;
+            return elmTotal;
+        }
+
+        //this is the scan-line bit, it can be optimized by passing the reliant function to perform the inner lookup theGrid[elmX + elm * gridSpacing].x or theGrid[elm + elmX * gridSpacing].x, so basically needs to calculate either elmX + elm * gridSpacing or elm + elmX * gridSpacing
+        for (let elm = 0; elm < gridSpacing; elm++) {
+            //this bit can be optimized by passing the correct array, col or row
+            var a = { elm: elm }
+            if (overlapTest(a, grid, theColRowTotals, true)) {
+                elm = a.elm;
+                continue;
+            }
+            theColRowTotals[grid].colTotals[elm] = calculaterowcoltotal(gridSpacing, theGrid, elm, true);
         }
 
         for (let elm = 0; elm < gridSpacing; elm++) {
-            if (grid > 0 && elm % 2 === 0) {
-                const prevColTotal = theColRowTotals[grid - 1].rowTotals[elm >> 1];
-                // The overlapping row on the previous grid was below the threshold, so set this one not to double count
-                if (threasholdTest(prevColTotal, grid))  {
-                    theColRowTotals[grid].rowTotals[elm] = 9999999999;
-                    elm++;
-                    theColRowTotals[grid].rowTotals[elm] = 9999999999;
-                    continue;
-                }
-            }
-            let elmTotal = 0;
-            let elmX = 0;
-            while (elmX < gridSpacing) {
-                while (elmX < gridSpacing && theGrid[elm + elmX * gridSpacing].x === -1) {
-                    elmX++
-                }
-                //rowTotal--;
-                if (elmX < gridSpacing) {
-                    let blockCount = 0;
-                    while (elmX < gridSpacing && theGrid[elm + elmX * gridSpacing].x != -1) {
-                        blockCount++
-                        elmX++
-                    }
-                    if (blockCount >= 2) {
-                        elmTotal = elmTotal + blockCount - 1;
-                    }
-                    elmTotal++;
-                }
-            }
-            theColRowTotals[grid].rowTotals[elm] = elmTotal;
+            var a = { elm: elm }
+            if (overlapTest(a, grid, theColRowTotals, false)) {
+                elm = a.elm;
+                continue;
+            }           
+            theColRowTotals[grid].rowTotals[elm] = calculaterowcoltotal(gridSpacing, theGrid, elm, false);
         }
 
 
@@ -224,6 +244,7 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
 
     let grids = grid;
     let matchedRowCols = [];
+
 
     /*finally, iterate over all the row col totals and identify those that are within tolerance and add them to a list of candidate row and columns for layout fitting
     * In theory it's possible to check the row and column counts against the tolerance and add them to the list when they are calculated
@@ -239,7 +260,10 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
              * FIXME:Use a standard tolerance checking function
              * and optimize the code out so it uses the relevant rowTotals or colTotals array and the "row" "col" identification flag.
              * */
-            if (theColRowTotal.colTotals[entry] === 0 || (grid >= minimumGridSpacingToAllowOverruns && theColRowTotal.colTotals[entry] < overRuntollerance)) {
+
+
+
+            if (threasholdTest2(theColRowTotal.colTotals[entry],grid))  {
                 matchedRowCols.length = matchedRowCols.length + 1;
                 matchedRowCols[matchedRowCols.length - 1] = Object();
                 let matchedRowCol = matchedRowCols[matchedRowCols.length - 1];
@@ -251,7 +275,7 @@ processor.doLoad = function doLoad(overRuntollerance, minimumGridSpacingToAllowO
                 matchedRowCol.entries = entries;
                 matchedRowCols[matchedRowCols.length - 1] = matchedRowCol;
             }
-            if (theColRowTotal.rowTotals[entry] === 0 || (grid > minimumGridSpacingToAllowOverruns && theColRowTotal.rowTotals[entry] < overRuntollerance)) {
+            if (threasholdTest2(theColRowTotal.rowTotals[entry], grid)) {
                 matchedRowCols.length = matchedRowCols.length + 1;
                 matchedRowCols[matchedRowCols.length - 1] = Object();
                 let matchedRowCol = matchedRowCols[matchedRowCols.length - 1];
