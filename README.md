@@ -1,4 +1,6 @@
 # TextRecognissionAIChallange
+Please read and agree to License.readme1st before continueing. 
+
 The challenge is to recognise and layout text in the rather noisy source image made available with and without human hinting and training.
 
 
@@ -24,3 +26,14 @@ Winning submissions may ber used by any projects that can comply with the lisens
 
 Sample code to follow...
 
+To make a copy of this work:
+
+git clone https://github.com/olivetthered/TextRecognissionAIChallange.git
+
+Files under BSD license, can be forund under the directory BSD:
+
+git clone 'https://github.com/olivetthered/TextRecognissionAIChallange.git/BSD'
+
+Files under  Fairuse public domain license (US/UK and Central Europe), can be forund under the directory Fairuse:
+
+git clone 'https://github.com/olivetthered/TextRecognissionAIChallange.git/Fairuse'
